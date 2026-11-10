@@ -29,7 +29,7 @@ EPS = 1e-6
 
 
 def taker_fill(m, side: str, t: int, limit: float = 0.999, delay: int = 4, window: int = 3,
-               slip: float = 0.0, worst: bool = False):
+               slip: float = 0.0, worst: bool = False, px_mode: str = "mid"):
     """Return (fill_rel, price) or None."""
     a, b = PRE + t + delay, PRE + t + delay + window
     end = PRE + m.dur            # no trading after the window closes
@@ -37,9 +37,10 @@ def taker_fill(m, side: str, t: int, limit: float = 0.999, delay: int = 4, windo
     if a >= b:
         return None
     if side == "UP":
-        ev = m.ask_hi[a:b]
+        hi, lo = m.ask_hi[a:b], m.ask_lo[a:b]
     else:
-        ev = 1.0 - m.bid_lo[a:b]
+        hi, lo = 1.0 - m.bid_lo[a:b], 1.0 - m.bid_hi[a:b]
+    ev = hi if px_mode == "worst" else (lo if px_mode == "best" else 0.5 * (hi + lo))
     ok = ~np.isnan(ev)
     if not ok.any():
         return None

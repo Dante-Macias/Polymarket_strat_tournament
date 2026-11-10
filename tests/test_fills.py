@@ -51,16 +51,19 @@ def test_taker_cannot_use_prints_before_the_delay():
     m = mk()
     put(m, 10, 1, 0.55)        # too early: stamped at the decision second
     put(m, 14, 1, 0.61, 0.63)
-    assert fills.taker_fill(m, "UP", 10, delay=3, window=3) == (14, pytest.approx(0.63))
+    assert fills.taker_fill(m, "UP", 10, delay=3, window=3) == (14, pytest.approx(0.62))            # middle of the prints
+    assert fills.taker_fill(m, "UP", 10, delay=3, px_mode="worst") == (14, pytest.approx(0.63))
+    assert fills.taker_fill(m, "UP", 10, delay=3, px_mode="best") == (14, pytest.approx(0.61))
     assert fills.taker_fill(m, "UP", 10, delay=3, window=1) is None     # nothing at t+3 only
-    assert fills.taker_fill(m, "UP", 10, limit=0.62, delay=3) is None            # above our limit
+    assert fills.taker_fill(m, "UP", 10, limit=0.61, delay=3) is None            # above our limit
 
 
 def test_taker_down_uses_mirror_of_up_bid():
     m = mk()
     put(m, 20, -1, 0.70, 0.72)   # Up bid evidence 0.70..0.72 -> Down ask 0.28..0.30
-    ft, px = fills.taker_fill(m, "DOWN", 17, delay=3)
+    ft, px = fills.taker_fill(m, "DOWN", 17, delay=3, px_mode="worst")
     assert ft == 20 and px == pytest.approx(0.30)
+    assert fills.taker_fill(m, "DOWN", 17, delay=3)[1] == pytest.approx(0.29)
 
 
 def test_taker_never_fills_after_close():

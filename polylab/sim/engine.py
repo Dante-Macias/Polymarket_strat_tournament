@@ -119,9 +119,10 @@ class View:
 
 class Backtester:
     def __init__(self, spot: SpotSeries, delay: int = 4, window: int = 3, slip: float = 0.0,
-                 worst: bool = False, fee_mult: float = 1.0, maker_through: float = 0.0, aux: dict | None = None):
+                 worst: bool = False, fee_mult: float = 1.0, maker_through: float = 0.0, aux: dict | None = None,
+                 px_mode: str = "mid"):
         self.spot, self.delay, self.window = spot, delay, window
-        self.aux = aux
+        self.aux, self.px_mode = aux, px_mode
         self.slip, self.worst, self.fee_mult, self.maker_through = slip, worst, fee_mult, maker_through
 
     def run(self, strategies: list, markets: list[Market]) -> dict[str, list[Trade]]:
@@ -156,7 +157,7 @@ class Backtester:
                     continue
                 mkt = v.mid(o.side)
                 if o.kind == "taker":
-                    f = fills.taker_fill(m, o.side, t, o.price, self.delay, self.window, self.slip, self.worst)
+                    f = fills.taker_fill(m, o.side, t, o.price, self.delay, self.window, self.slip, self.worst, self.px_mode)
                     if f is None:
                         continue
                     ft, px = f

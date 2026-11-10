@@ -30,8 +30,8 @@ def probe_markets(markets, spot, delay=4, window=3, t_grid=T_GRID) -> pd.DataFra
             p, sig, d = view_p_up(v)
             fu = fills.taker_fill(m, "UP", t, 0.999, delay, window)
             fd = fills.taker_fill(m, "DOWN", t, 0.999, delay, window)
-            wu = fills.taker_fill(m, "UP", t, 0.999, delay + 2, window, worst=True)
-            wd = fills.taker_fill(m, "DOWN", t, 0.999, delay + 2, window, worst=True)
+            wu = fills.taker_fill(m, "UP", t, 0.999, delay + 2, window, worst=True, px_mode="worst")
+            wd = fills.taker_fill(m, "DOWN", t, 0.999, delay + 2, window, worst=True, px_mode="worst")
             rows.append((m.start_ts, t, d, sig, p, v.ask("UP"), v.bid("UP"),
                          fu[1] if fu else np.nan, fd[1] if fd else np.nan,
                          wu[1] if wu else np.nan, wd[1] if wd else np.nan,

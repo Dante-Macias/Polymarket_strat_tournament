@@ -1,0 +1,16 @@
+strategy
+S01_early60_taker
+S02_trend_macd
+S03_daymom_0_240_720
+S04_pair_taker_m4
+S05_pair_maker_44_bail60
+S06_ahead_t120_z2
+S07_fairvalue_m8_early
+S08_twaplock_m2_p95
+S09_opengap_x10_cap55_t3
+S10_tapeflow_fade_t30_thr5
+S11_spotflow_fade_n120_t60_thr5
+S12_model_maker_e8
+S15_bucket_90_97_t280
+base_favorite_t240
+base_random_t240

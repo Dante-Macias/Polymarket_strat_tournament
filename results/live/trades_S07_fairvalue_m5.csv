@@ -1,2 +1,0 @@
-time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
-2026-11-10 19:35:36,S07_fairvalue_m5,btc,1794339300,DOWN,taker,35,36,0.8,5.0,0.056,0.8658866388828689,0.785,,,

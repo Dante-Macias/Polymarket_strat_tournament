@@ -4,6 +4,7 @@
     python scripts/run_backtests.py grid       # run every grid configuration on every day
     python scripts/run_backtests.py select     # pick one config per family on IN-SAMPLE days only
     python scripts/run_backtests.py stress     # re-run the selected configs under harsher assumptions
+    python scripts/run_backtests.py touch      # optimistic bound for resting orders (fill on touch)
     python scripts/run_backtests.py            # all three
 
 In-sample = first 60% of days, out-of-sample = last 40%. The selection rule is
@@ -28,7 +29,9 @@ BT = DATA / "bt"
 IS_FRACTION = 0.6
 MIN_IS_TRADES = 200
 STRESS = {
-    "slow_fills": dict(delay=6, worst=True, slip=0.01),      # ~3s real latency, worst print, +1c slippage
+    "slow_fills": dict(delay=6, worst=True, px_mode="worst", slip=0.01),   # ~3s real latency, worst print, +1c
+    "worst_print": dict(px_mode="worst"),                     # pay the worst print of the second
+    "best_print": dict(px_mode="best"),                       # OPTIMISTIC bound: pay the best print of the second
     "fees_x1.5": dict(fee_mult=1.5),
     "maker_through_1c": dict(maker_through=0.01),             # limit orders need a 1c trade-through
 }
@@ -150,11 +153,40 @@ def stage_stress():
     print(out.pivot_table(index="name", columns="scenario", values="roi").round(4).to_string())
 
 
+def stage_touch():
+    """Optimistic bound for resting orders: filled as soon as a print TOUCHES the price.
+
+    The base rule (trade strictly through) only counts fills that already moved
+    against us; this one assumes we are first in the queue every time. The truth
+    for a real maker lies between the two.
+    """
+    is_days, oos_days = split_days()
+    fam = grid.family_of()
+    names = {n for n, f in fam.items() if f in ("S05_pair_maker", "S12_model_maker")} | {"S01_early60_limit", "S01_early60_limit_fade"}
+    t = run_all("maker_touch", is_days + oos_days, names, maker_through=-0.0015)
+    isd = set(is_days)
+    t["sample"] = t["day"].map(lambda d: "in_sample" if d in isd else "out_of_sample")
+    rows = []
+    for (n, smp), g in t.groupby(["strategy", "sample"]):
+        r = summarize(g, n)
+        per = g.groupby("start_ts").agg(legs=("side", "nunique"), pnl=("pnl", "sum"))
+        r.update(sample=smp, markets_entered=len(per), both_legs=int((per.legs == 2).sum()), one_leg=int((per.legs == 1).sum()),
+                 pnl_per_market=float(per.pnl.mean()))
+        rows.append(r)
+    r = pd.DataFrame(rows)[["name", "sample", "trades", "hit_rate", "avg_price", "pnl", "pnl_per_trade", "roi", "t_stat",
+                            "markets_entered", "both_legs", "one_leg", "pnl_per_market"]]
+    r.to_csv(RESULTS / "maker_touch_optimistic.csv", index=False)
+    pd.set_option("display.width", 250)
+    print(r.round(4).to_string(index=False))
+
+
 if __name__ == "__main__":
-    stages = sys.argv[1:] or ["grid", "select", "stress"]
+    stages = sys.argv[1:] or ["grid", "select", "stress", "touch"]
     if "grid" in stages:
         stage_grid()
     if "select" in stages:
         stage_select()
     if "stress" in stages:
         stage_stress()
+    if "touch" in stages:
+        stage_touch()
