@@ -16,7 +16,7 @@ L = PRE + DUR + POST
 def mk(outcome_up=1, strike=100.0):
     nan = lambda: np.full(L, np.nan, dtype=np.float32)  # noqa: E731
     z = lambda: np.zeros(L, dtype=np.float32)  # noqa: E731
-    return Market("btc", 10_000, DUR, strike, strike + (1 if outcome_up else -1), outcome_up, 0.07,
+    return Market("btc", 20_000, DUR, strike, strike + (1 if outcome_up else -1), outcome_up, 0.07,
                   nan(), nan(), z(), nan(), nan(), z())
 
 
@@ -101,7 +101,7 @@ class BuyOnce(Strategy):
 
 def spot_series():
     import pandas as pd
-    ts = np.arange(0, 20_000)
+    ts = np.arange(0, 40_000)
     return SpotSeries(pd.DataFrame({"ts": ts, "close": 100.0, "volume": 1.0, "taker_buy_vol": 0.5}))
 
 
@@ -139,3 +139,15 @@ def test_view_has_no_lookahead_on_quotes_and_spot():
     assert v.ask("UP") == pytest.approx(0.80)
     v.t = 40
     assert np.isnan(v.ask("UP"))     # stale after 10s
+
+
+def test_day_stop_truncates_the_rest_of_the_day():
+    import pandas as pd
+    from polylab.studies import apply_day_stop, daily_distribution
+    df = pd.DataFrame({"day": ["a"] * 4 + ["b"] * 3, "start_ts": [1, 2, 3, 4, 5, 6, 7], "t_fill": 0,
+                       "pnl": [1.0, 1.5, -5.0, 1.0, -1.0, -1.0, 4.0]})
+    kept = apply_day_stop(df, take_profit=2.0)
+    assert kept["start_ts"].tolist() == [1, 2, 5, 6, 7]       # day a stops after reaching +2.5
+    assert daily_distribution(kept)["total"] == 4.5
+    kept = apply_day_stop(df, stop_loss=1.5)
+    assert kept["start_ts"].tolist() == [1, 2, 3, 5, 6]       # a stops at -2.5, b stops at -2

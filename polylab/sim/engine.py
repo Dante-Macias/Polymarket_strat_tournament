@@ -14,15 +14,21 @@ from ..strategies.base import Cancel, Order, Trade
 from . import fills
 from .market import Market, SpotSeries
 
-STRIKE_DELAY = 3     # seconds after the open before the official strike is assumed visible
+# The official strike ("price to beat") is NOT published through the public API while a
+# window is live (checked 10 Nov 2026: Gamma only fills it in after the window). So by
+# default a bot never sees it: it estimates strike = exchange 60s average + the
+# Chainlink-vs-exchange basis observed on the previous window (error ~ $5 for BTC).
+# Set STRIKE_DELAY to a small number to simulate having the authenticated price stream.
+STRIKE_DELAY = 10**9
 QUOTE_MAX_AGE = 10   # seconds; older tape evidence is treated as "no quote"
 
 
 class View:
     """Everything a strategy may know at second `t` of a market (no future)."""
 
-    def __init__(self, m: Market, spot: SpotSeries, history: list, last_basis: float):
+    def __init__(self, m: Market, spot: SpotSeries, history: list, last_basis: float, aux: dict | None = None):
         self._m, self._spot = m, spot
+        self._aux = aux or {}
         self.asset, self.start_ts, self.dur = m.asset, m.start_ts, m.dur
         self.fee_rate = m.fee_rate
         self.history = history            # closed markets: (start_ts, outcome_up, strike, final)
@@ -60,6 +66,12 @@ class View:
 
     def raw_spot(self, secs_ago: int = 0) -> float:
         return self._spot.at(self.start_ts + self.t - 1 - secs_ago)
+
+    def aux_ret(self, name: str, n: int) -> float:
+        """Return of another asset (e.g. 'btc' when trading ETH) over the last n seconds."""
+        a = self._aux[name]
+        e = self.start_ts + self.t - 1
+        return a.at(e) / a.at(e - n) - 1.0
 
     def spot_hist(self, n: int) -> np.ndarray:
         """Last n completed 1s closes (raw exchange price), oldest first."""
@@ -107,8 +119,9 @@ class View:
 
 class Backtester:
     def __init__(self, spot: SpotSeries, delay: int = 3, window: int = 3, slip: float = 0.0,
-                 worst: bool = False, fee_mult: float = 1.0, maker_through: float = 0.0):
+                 worst: bool = False, fee_mult: float = 1.0, maker_through: float = 0.0, aux: dict | None = None):
         self.spot, self.delay, self.window = spot, delay, window
+        self.aux = aux
         self.slip, self.worst, self.fee_mult, self.maker_through = slip, worst, fee_mult, maker_through
 
     def run(self, strategies: list, markets: list[Market]) -> dict[str, list[Trade]]:
@@ -116,7 +129,7 @@ class Backtester:
         history: list = []
         last_basis = None
         for m in markets:
-            if not self.spot.has(m.start_ts - 4000, m.start_ts + m.dur + 1):
+            if not self.spot.has(m.start_ts - 11000, m.start_ts + m.dur + 1):
                 continue
             if last_basis is None:
                 last_basis = m.strike - self.spot.mean(m.start_ts - 60, m.start_ts)
@@ -127,7 +140,7 @@ class Backtester:
         return out
 
     def _run_market(self, s, m: Market, history, last_basis) -> list[Trade]:
-        v = View(m, self.spot, history, last_basis)
+        v = View(m, self.spot, history, last_basis, self.aux)
         done: list[Trade] = []
         pending: list[tuple[Order, int, Trade]] = []   # (order, fill_rel, trade)
         for t in s.ticks(m.dur):
@@ -151,6 +164,9 @@ class Backtester:
                     done.append(Trade(s.name, m.asset, m.start_ts, o.side, "taker", t, ft, px, o.size, fee,
                                       o.prob, mkt, o.tag))
                 else:
+                    a = v.ask(o.side)
+                    if a == a and a <= o.price + 1e-9:
+                        continue     # post-only: a bid at/above the ask would not rest, so it is rejected
                     ft = fills.maker_fill(m, o.side, t, o.price, o.ttl, self.delay, self.maker_through)
                     if ft is None:
                         continue
