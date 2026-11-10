@@ -28,7 +28,7 @@ BT = DATA / "bt"
 IS_FRACTION = 0.6
 MIN_IS_TRADES = 200
 STRESS = {
-    "slow_fills": dict(delay=5, worst=True, slip=0.01),      # 5s latency, worst print, +1c slippage
+    "slow_fills": dict(delay=6, worst=True, slip=0.01),      # ~3s real latency, worst print, +1c slippage
     "fees_x1.5": dict(fee_mult=1.5),
     "maker_through_1c": dict(maker_through=0.01),             # limit orders need a 1c trade-through
 }

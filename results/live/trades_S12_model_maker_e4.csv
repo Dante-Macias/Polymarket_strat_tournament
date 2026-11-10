@@ -1,0 +1,4 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-10 19:35:15,S12_model_maker_e4,btc,1794339300,UP,limit,10,15,0.44,5.0,0.0,0.48088695632804257,0.475,,,
+2026-11-10 19:40:18,S12_model_maker_e4,btc,1794339600,UP,limit,10,18,0.42,5.0,0.0,0.46136850839383775,0.46499999999999997,,,
+2026-11-10 19:40:26,S12_model_maker_e4,btc,1794339600,DOWN,limit,20,26,0.54,5.0,0.0,0.5830706878310173,0.545,,,

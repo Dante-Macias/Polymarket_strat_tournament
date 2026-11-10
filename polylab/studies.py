@@ -13,7 +13,7 @@ def _seen(arr, i, max_age=10):
     return float(seg[ok[-1]]) if len(ok) else float("nan")
 
 
-def nested_pairs(m5_list, m15_list, spot, margin=0.0, delay=3, basis_guard=15.0) -> pd.DataFrame:
+def nested_pairs(m5_list, m15_list, spot, margin=0.0, delay=4, basis_guard=15.0) -> pd.DataFrame:
     """S14: 5-minute window vs the 15-minute window that ends at the same instant.
 
     Both settle on the same final price F. If strike5 > strike15 then "Up 5m"

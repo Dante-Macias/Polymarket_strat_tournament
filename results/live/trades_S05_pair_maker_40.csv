@@ -1,0 +1,3 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-10 19:35:16,S05_pair_maker_40,btc,1794339300,UP,limit,5,16,0.4,5.0,0.0,,0.49,,,
+2026-11-10 19:41:14,S05_pair_maker_40,btc,1794339600,DOWN,limit,5,74,0.4,5.0,0.0,,0.525,,,

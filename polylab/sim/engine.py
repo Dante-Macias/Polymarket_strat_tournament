@@ -118,7 +118,7 @@ class View:
 
 
 class Backtester:
-    def __init__(self, spot: SpotSeries, delay: int = 3, window: int = 3, slip: float = 0.0,
+    def __init__(self, spot: SpotSeries, delay: int = 4, window: int = 3, slip: float = 0.0,
                  worst: bool = False, fee_mult: float = 1.0, maker_through: float = 0.0, aux: dict | None = None):
         self.spot, self.delay, self.window = spot, delay, window
         self.aux = aux

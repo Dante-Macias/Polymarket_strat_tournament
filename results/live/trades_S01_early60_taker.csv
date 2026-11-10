@@ -1,0 +1,3 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-10 19:35:02,S01_early60_taker,btc,1794339300,DOWN,taker,1,2,0.52,5.0,0.08736,0.57,0.565,,,
+2026-11-10 19:40:02,S01_early60_taker,btc,1794339600,DOWN,taker,1,2,0.58,5.0,0.08526,0.59,0.585,,,

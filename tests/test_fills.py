@@ -53,28 +53,28 @@ def test_taker_cannot_use_prints_before_the_delay():
     put(m, 14, 1, 0.61, 0.63)
     assert fills.taker_fill(m, "UP", 10, delay=3, window=3) == (14, pytest.approx(0.63))
     assert fills.taker_fill(m, "UP", 10, delay=3, window=1) is None     # nothing at t+3 only
-    assert fills.taker_fill(m, "UP", 10, limit=0.62) is None            # above our limit
+    assert fills.taker_fill(m, "UP", 10, limit=0.62, delay=3) is None            # above our limit
 
 
 def test_taker_down_uses_mirror_of_up_bid():
     m = mk()
     put(m, 20, -1, 0.70, 0.72)   # Up bid evidence 0.70..0.72 -> Down ask 0.28..0.30
-    ft, px = fills.taker_fill(m, "DOWN", 17)
+    ft, px = fills.taker_fill(m, "DOWN", 17, delay=3)
     assert ft == 20 and px == pytest.approx(0.30)
 
 
 def test_taker_never_fills_after_close():
     m = mk()
     put(m, 301, 1, 0.99)
-    assert fills.taker_fill(m, "UP", 297) is None
+    assert fills.taker_fill(m, "UP", 297, delay=3) is None
 
 
 def test_maker_needs_trade_through_not_touch():
     m = mk()
     put(m, 30, -1, 0.45)            # touches a 0.45 bid: no fill
     assert fills.maker_fill(m, "UP", 10, 0.45, ttl=100) is None
-    put(m, 40, -1, 0.44)            # trades through
-    assert fills.maker_fill(m, "UP", 10, 0.45, ttl=100) == 40
+    put(m, 41, -1, 0.44)            # trades through
+    assert fills.maker_fill(m, "UP", 10, 0.45, ttl=100) == 41
     assert fills.maker_fill(m, "UP", 10, 0.45, ttl=20) is None          # expired first
     assert fills.maker_fill(m, "UP", 38, 0.45, ttl=100) is None         # print inside the delay
 
@@ -108,8 +108,8 @@ def spot_series():
 def test_pnl_math_winner_and_loser():
     bt = Backtester(spot_series())
     m = mk(outcome_up=1)
-    put(m, 13, 1, 0.60)
-    put(m, 13, -1, 0.58)
+    put(m, 14, 1, 0.60)
+    put(m, 14, -1, 0.58)
     win = bt.run([BuyOnce("UP")], [m])["buy_once"][0]
     fee = 5 * 0.07 * 0.6 * 0.4
     assert win.price == pytest.approx(0.60) and win.fee == pytest.approx(fee)

@@ -16,7 +16,7 @@ from .sim.engine import View
 T_GRID = [0, 2, 4, 6, 8, 10, 15, 20, 30, 45, 60, 90, 120, 150, 180, 210, 240, 250, 260, 270, 280, 285, 290, 293]
 
 
-def probe_markets(markets, spot, delay=3, window=3, t_grid=T_GRID) -> pd.DataFrame:
+def probe_markets(markets, spot, delay=4, window=3, t_grid=T_GRID) -> pd.DataFrame:
     rows = []
     history, last_basis = [], None
     for m in markets:

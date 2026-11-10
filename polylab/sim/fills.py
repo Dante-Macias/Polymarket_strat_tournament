@@ -5,10 +5,11 @@ We do not have historical order books, only prints. Rules:
 TAKER (marketable buy, "fill-and-kill" with a limit price)
   A decision made at second t can only be filled by liquidity that shows up in
   the tape at stamps [t+delay, t+delay+window). `delay` covers both our own
-  latency and the fact that tape stamps are Polygon block times, i.e. a print
-  stamped s was really matched a few seconds earlier - so skipping `delay`
-  seconds stops the simulator from trading on prints that happened before the
-  decision. Price = worst print of the first second that has evidence
+  latency and the fact that tape stamps are Polygon block times: measured, a
+  print's stamp trails the exchange move that caused it by 3-4 seconds (see
+  FINDINGS.md). The default delay of 4 therefore means "about one second of
+  real latency", and it stops the simulator from trading on prints that
+  really happened before the decision. Price = worst print of the first second that has evidence
   (+ optional slippage). No evidence, or price above the limit -> no fill.
 
 MAKER (resting buy at limit L)
@@ -27,7 +28,7 @@ from ..data.history import PRE
 EPS = 1e-6
 
 
-def taker_fill(m, side: str, t: int, limit: float = 0.999, delay: int = 3, window: int = 3,
+def taker_fill(m, side: str, t: int, limit: float = 0.999, delay: int = 4, window: int = 3,
                slip: float = 0.0, worst: bool = False):
     """Return (fill_rel, price) or None."""
     a, b = PRE + t + delay, PRE + t + delay + window
@@ -53,7 +54,7 @@ def taker_fill(m, side: str, t: int, limit: float = 0.999, delay: int = 3, windo
     return t + delay + k, px
 
 
-def maker_fill(m, side: str, t: int, price: float, ttl: int, delay: int = 3, through: float = 0.0):
+def maker_fill(m, side: str, t: int, price: float, ttl: int, delay: int = 4, through: float = 0.0):
     """Resting buy of `side` at `price` placed at t. Return fill_rel or None.
 
     through: how far past our price a print must trade (0 -> strictly below).

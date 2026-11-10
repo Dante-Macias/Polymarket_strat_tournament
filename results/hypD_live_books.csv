@@ -1,0 +1,2 @@
+hours_recorded,snapshots,markets,median_sum_of_asks,min_sum_of_asks,share_sum_below_1,share_sum_at_most_0_99,share_profitable_after_taker_fees,median_spread_up,median_ask_size_up
+0.18341690480709075,376,3,1.01,0.99,0.0026595744680851063,0.0026595744680851063,0.0,0.010000000000000009,794.61

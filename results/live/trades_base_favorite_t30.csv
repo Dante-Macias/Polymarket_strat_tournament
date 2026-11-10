@@ -1,0 +1,3 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-10 19:35:31,base_favorite_t30,btc,1794339300,DOWN,taker,30,31,0.73,5.0,0.06899,0.725,0.725,,,
+2026-11-10 19:40:31,base_favorite_t30,btc,1794339600,UP,taker,30,31,0.51,5.0,0.08747,0.505,0.505,,,

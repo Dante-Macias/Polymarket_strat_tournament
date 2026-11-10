@@ -21,12 +21,12 @@ ap.add_argument("--duration", default="5m", choices=list(DUR))
 ap.add_argument("--start", required=True)
 ap.add_argument("--end", required=True)
 ap.add_argument("--workers", type=int, default=12)
+ap.add_argument("--ascending", action="store_true", help="oldest day first")
 a = ap.parse_args()
 
 d0, d1 = dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)
-day = d1
-while day >= d0:
+days = [d0 + dt.timedelta(days=i) for i in range((d1 - d0).days + 1)]
+for day in (days if a.ascending else reversed(days)):
     t = time.time()
     n = download_day(a.asset, a.duration, DUR[a.duration], day, a.workers)
     print(f"{a.asset} {a.duration} {day}: {n} markets in {time.time() - t:.0f}s", flush=True)
-    day -= dt.timedelta(days=1)
