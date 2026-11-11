@@ -1,0 +1,3 @@
+sample,snapshots,median_ask_sum,median_bid_sum,yes_arb,no_arb,best_yes_edge,best_no_edge
+all events,328,1.026,0.9790000000000001,16,0,0.046221239999999955,-9.990000000000004e-05
+exhaustive only,128,1.0415,0.976,3,0,0.02585480000000003,-9.990000000000004e-05

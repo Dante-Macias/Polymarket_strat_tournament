@@ -1,0 +1,5 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-10 20:38:05,S04_pair_taker_m4,btc,1794342900,DOWN,taker,184,185,0.21000000000000002,5.0,0.05807,,0.235,1.0,0.0,-1.10807
+2026-11-10 20:53:15,S04_pair_taker_m4,btc,1794343800,DOWN,taker,194,195,0.27,5.0,0.06899,,0.255,1.0,0.0,-1.41899
+2026-11-10 21:28:00,S04_pair_taker_m4,btc,1794345900,DOWN,taker,179,180,0.36,5.0,0.08064,,0.345,1.0,0.0,-1.8806399999999999
+2026-11-10 21:56:05,S04_pair_taker_m4,btc,1794347700,DOWN,taker,64,65,0.37,5.0,0.08159,,0.38,,,
