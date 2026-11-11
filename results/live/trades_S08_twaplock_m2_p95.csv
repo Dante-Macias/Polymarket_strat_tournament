@@ -1,2 +1,3 @@
 time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
 2026-11-10 21:34:15,S08_twaplock_m2_p95,btc,1794346200,UP,taker,254,255,0.97,5.0,0.01019,0.9946173451454439,0.965,1.0,5.0,0.13981000000000035
+2026-11-11 04:09:07,S08_twaplock_m2_p95,btc,1794369900,UP,taker,246,247,0.96,5.0,0.01344,0.9865954931585081,0.955,1.0,5.0,0.18656000000000017
