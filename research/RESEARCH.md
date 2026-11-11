@@ -320,7 +320,8 @@ fans backing the underdog.
 
 **S17 · Value vs. sharp sportsbook line.** Bet when Polymarket's price is cheaper than the
 no-vig sharp line by a margin. Needs a historical odds feed the lab does not have for free, so
-this ships as a paper bot with a pluggable odds input and no backtest.
+this ships as a paper bot (`SharpLine` in `polylab/strategies/slow.py`) that reads fair
+probabilities from `data/odds/sharp_lines.csv`, with no backtest.
 
 **S18 · Near-certain "bonds".** Buy outcomes at 95–99¢ a day before resolution across categories;
 measure realised win rate vs. price. *Other side:* holders who want their cash back early.

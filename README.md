@@ -18,7 +18,7 @@ Start with:
 git clone <this repo> && cd Polymarket_strat_tournament
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pytest -q                      # 10 tests on the fill logic and P&L math
+pytest -q                      # 14 tests: fills, P&L, fees, metrics, paper engines
 ```
 
 ## Run things
@@ -27,24 +27,29 @@ pytest -q                      # 10 tests on the fill logic and P&L math
 # 1. Live paper league for BTC 5-minute markets (also records order books). Ctrl-C to stop.
 python scripts/run_paper.py
 
-# 2. Optional extra recorders (one terminal each)
+# 2. Paper league for sports favourites, near-certain outcomes, sum arbitrage, sportsbook lines
+python scripts/run_slow_league.py
+
+# 3. Optional extra recorders (one terminal each)
 python scripts/run_recorder.py --asset eth --duration 5m
 python scripts/run_recorder.py --asset btc --duration 15m
 
-# 3. Rebuild the history and re-run every backtest (takes about 1.5 hours the first time)
+# 4. Rebuild the history and re-run every backtest (takes about 1.5 hours the first time)
 python scripts/download_binance.py --start 2026-08-13 --end 2026-11-09
 python scripts/download_history.py --start 2026-08-14 --end 2026-11-09
 python scripts/run_backtests.py
+python scripts/analyze.py && python scripts/analyze_slow.py
 ```
 
 To keep the league running after you close the terminal or the lid:
 
 ```bash
 caffeinate -i nohup python scripts/run_paper.py > data/live/paper.log 2>&1 &
+caffeinate -i nohup python scripts/run_slow_league.py > data/live/slow.log 2>&1 &
 ```
 
 (`caffeinate -i` stops the Mac from idle-sleeping while the command runs; `tail -f data/live/paper.log`
-shows what the bots are doing; `pkill -f run_paper.py` stops it.)
+shows what the bots are doing; `pkill -f run_paper.py` / `pkill -f run_slow_league.py` stops them.)
 
 ## The live sheet
 
@@ -55,6 +60,8 @@ After every settled market the engine rewrites `results/live/`:
 | `leaderboard.csv` | One row per bot, best first. Open it in Numbers/Excel, or import it into Google Sheets. |
 | `paper_league.xlsx` | Same leaderboard plus one tab per bot with every paper trade. |
 | `trades_<bot>.csv` | Every paper trade of one bot. |
+
+The slow league writes the same files to `results/live_slow/`.
 
 Columns of the leaderboard:
 
@@ -81,8 +88,8 @@ Cloud service-account key, which is not worth the setup at this stage.
 polylab/
   data/        read-only clients: Polymarket (Gamma, CLOB, Data API v2), Binance, history downloader
   sim/         market data model, tape-based fill simulator, event-driven backtester
-  live/        live feeds, SQLite recorder, paper-trading engine
-  strategies/  one small class per strategy; the same class runs in backtest and on paper
+  live/        live feeds, SQLite recorder, paper-trading engines (5-minute and slow buckets)
+  strategies/  one small class per strategy (fast.py: 5-minute bots, slow.py: sports/outright bots)
   model.py     fair-value model for markets that settle on a 60-second average
   metrics.py   hit rate, ROI, Sharpe, drawdown, Brier, day-clustered t-tests, bootstrap
   league.py    the list of bots with their locked parameters

@@ -1,0 +1,4 @@
+time_utc,strategy,asset,start_ts,side,kind,t_decision,t_fill,price,size,fee,prob,mkt_price,outcome_up,payout,pnl
+2026-11-11 02:40:04,S09_opengap_x10_cap55_t3,btc,1794364800,DOWN,taker,3,4,0.55,5.0,0.08663,0.555820078396102,0.555,1.0,0.0,-2.83663
+2026-11-11 02:55:04,S09_opengap_x10_cap55_t3,btc,1794365700,UP,taker,3,4,0.54,5.0,0.08694,0.5643679380364317,0.555,1.0,5.0,2.21306
+2026-11-11 03:00:04,S09_opengap_x10_cap55_t3,btc,1794366000,UP,taker,3,4,0.53,5.0,0.08719,0.5586703624962583,0.535,1.0,5.0,2.2628099999999995

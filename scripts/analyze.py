@@ -113,11 +113,12 @@ def live():
                           "WHERE t BETWEEN 0 AND 299", con)
     mk = pd.read_sql_query("SELECT start_ts,outcome_up FROM markets", con)
     con.close()
+    raw = s.copy()                      # keep seconds where one side of the book is empty
     s = s.dropna(subset=["up_ask", "dn_ask"])
     s["sum_ask"] = s["up_ask"] + s["dn_ask"]
     s["fees"] = 0.07 * (s.up_ask * (1 - s.up_ask) + s.dn_ask * (1 - s.dn_ask))
     s["spread_up"] = s["up_ask"] - s["up_bid"]
-    hours = (s.ts.max() - s.ts.min()) / 3600
+    hours = len(s) / 3600     # one snapshot per second while recording
     out = dict(hours_recorded=hours, snapshots=len(s), markets=s.start_ts.nunique(),
                median_sum_of_asks=s.sum_ask.median(), min_sum_of_asks=s.sum_ask.min(),
                share_sum_below_1=float((s.sum_ask < 0.9999).mean()),
@@ -133,13 +134,13 @@ def live():
     rows = []
     mk = mk.dropna().set_index("start_ts")["outcome_up"]
     for x in (0.40, 0.44, 0.46, 0.48, 0.49):
-        for st, g in s.groupby("start_ts"):
+        for st, g in raw.groupby("start_ts"):
             g = g.sort_values("t")
             if st not in mk.index or g.t.min() > 8 or g.t.max() < 290:
                 continue
-            g0 = g[g.t >= 5]
+            g0 = g[g.t >= 1]      # bids placed right after the open, like a bot would
             first = g0.iloc[0]
-            if not (first.up_ask > x and first.dn_ask > x):
+            if not (first.up_ask > x and first.dn_ask > x):      # NaN (empty side) -> skip
                 continue
             fu, fd = bool((g0.up_ask <= x + 1e-9).any()), bool((g0.dn_ask <= x + 1e-9).any())
             up = mk[st]

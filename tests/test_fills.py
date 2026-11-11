@@ -154,3 +154,40 @@ def test_day_stop_truncates_the_rest_of_the_day():
     assert daily_distribution(kept)["total"] == 4.5
     kept = apply_day_stop(df, stop_loss=1.5)
     assert kept["start_ts"].tolist() == [1, 2, 3, 5, 6]       # a stops at -2.5, b stops at -2
+
+
+def test_paper_walk_uses_the_ask_ladder():
+    from polylab.live.paper import walk
+    asks = [(0.50, 3.0), (0.52, 10.0)]
+    assert walk(asks, 2.0) == pytest.approx(0.50)
+    assert walk(asks, 5.0) == pytest.approx((3 * 0.50 + 2 * 0.52) / 5)
+    assert walk(asks, 20.0) is None               # book too thin
+
+
+def test_metrics_basic():
+    import pandas as pd
+    from polylab.metrics import max_drawdown, summarize
+    assert max_drawdown(np.array([1.0, -2.0, 0.5, -1.0, 3.0])) == pytest.approx(2.5)
+    df = pd.DataFrame({"pnl": [2.0, -3.0, 2.0], "payout": [5.0, 0.0, 5.0], "price": [0.6, 0.6, 0.6], "size": 5.0,
+                       "fee": 0.0, "prob": [0.7, 0.7, 0.7], "mkt_price": [0.6, 0.6, 0.6], "start_ts": [0, 86400, 172800],
+                       "t_fill": 0})
+    df["day"] = pd.to_datetime(df["start_ts"], unit="s").dt.date
+    df["win"] = (df["payout"] > 0).astype(int)
+    s = summarize(df, "x")
+    assert s["trades"] == 3 and s["hit_rate"] == pytest.approx(2 / 3)
+    assert s["roi"] == pytest.approx(1.0 / 9.0)
+    assert s["brier"] == pytest.approx(((0.3 ** 2) * 2 + 0.7 ** 2) / 3)
+
+
+def test_slow_engine_restart_remembers_traded_markets(tmp_path, monkeypatch):
+    from polylab.live import slow_paper
+    from polylab.strategies.base import Trade
+    from polylab.strategies.slow import NearCertain, SumArb
+    monkeypatch.setattr(slow_paper, "LIVE", tmp_path)
+    eng = slow_paper.SlowPaperEngine([NearCertain(), SumArb()], db_name="t.sqlite", log=lambda m: None)
+    eng.store.add_trade(Trade("S18_bonds_95", "q", 0, "Yes", "taker", 0, 0, 0.97, 5, 0, 0.97, 0.97, "123:0"), 0)
+    eng.store.add_trade(Trade("S20_sumarb_m1", "q", 0, "Yes", "taker", 0, 0, 0.3, 5, 0, None, 0.3, "77:0|event:9"), 0)
+    eng.store.commit()
+    b1, b2 = NearCertain(), SumArb()
+    slow_paper.SlowPaperEngine([b1, b2], db_name="t.sqlite", log=lambda m: None)
+    assert "123" in b1.done and "9" in b2.done
